@@ -6,6 +6,7 @@ const {
     MIN_ULID,
     ULID_REGEX,
     UUID_REGEX,
+    BYTES_LEN,
     decodeTime,
     detectPRNG,
     encodeTime,
@@ -14,7 +15,9 @@ const {
     monotonicFactory,
     ulid,
     ulidToUUID,
-    uuidToULID
+    uuidToULID,
+    ulidToBytes,
+    bytesToULID
 } = require("../../dist/node/index.cjs");
 
 describe("ulid", function() {
@@ -252,6 +255,39 @@ describe("ulid", function() {
             expect(() => {
                 uuidToULID("whatever");
             }).to.throw(/Invalid UUID/);
+        });
+    });
+
+    describe("ulid to bytes", function () {
+        it("should return a valid Uint8Array", function () {
+            const ulidValue = ulid();
+            const bytes = ulidToBytes(ulidValue);
+            const ulidBack = bytesToULID(bytes);
+            expect(bytes).to.be.an.instanceOf(Uint8Array);
+            expect(bytes.length).to.equal(BYTES_LEN);
+            expect(ulidBack).to.equal(ulidValue);
+        });
+
+        it("should throw an error if an invalid ulid is provided", function () {
+            expect(() => {
+                ulidToBytes("whatever");
+            }).to.throw(/Invalid ULID/);
+        });
+    });
+
+    describe("bytes to ulid", function () {
+        it("should return a valid ulid", function () {
+            const bytes = new Uint8Array(16);
+            const ulidValue = bytesToULID(bytes);
+            const bytesBack = ulidToBytes(ulidValue);
+            expect(ulidValue).to.match(ULID_REGEX);
+            expect(bytesBack).to.deep.equal(bytes);
+        });
+
+        it("should throw an error if an invalid byte array is provided", function () {
+            expect(() => {
+                bytesToULID(new Uint8Array(15));
+            }).to.throw(/Invalid bytes/);
         });
     });
 });

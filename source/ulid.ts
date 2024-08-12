@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { Layerr } from "layerr";
 import { PRNG, ULID, ULIDFactory, UUID } from "./types.js";
 import { crockfordDecode, crockfordEncode } from "./crockford.js";
-import { ULID_REGEX, UUID_REGEX } from "./constants.js";
+import { ULID_REGEX, UUID_REGEX, BYTES_LEN } from "./constants.js";
 
 // These values should NEVER change. The values are precisely for
 // generating ULIDs.
@@ -353,4 +353,29 @@ export function uuidToULID(uuid: string): ULID {
             .map(byte => parseInt(byte, 16))
     );
     return crockfordEncode(uint8Array);
+}
+
+/**
+ * Convert a ULID to a byte array
+ * @param ulid The ULID to convert
+ * @returns A byte array
+ */
+export function ulidToBytes(ulid): Uint8Array {
+    const isValid = ULID_REGEX.test(ulid);
+    if (!isValid) {
+        throw new Layerr({ info: { code: "INVALID_ULID", ...ERROR_INFO } }, "Invalid ULID");
+    }
+    return crockfordDecode(ulid);
+}
+
+/**
+ * Convert a byte array to a ULID
+ * @param bytes The byte array to convert
+ * @returns A ULID string
+ */
+export function bytesToULID(bytes: Uint8Array): string {
+    if (bytes.length !== BYTES_LEN) {
+        throw new Layerr({ info: { code: "INVALID_BYTES", ...ERROR_INFO } }, "Invalid bytes");
+    }
+    return crockfordEncode(bytes);
 }
